@@ -41,6 +41,7 @@
         <developmentServer>localhost</developmentServer>
         <targetDevice>PIC18F25K22</targetDevice>
         <targetHeader></targetHeader>
+        <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>hi-tech-picc18</languageToolchain>
         <languageToolchainVersion>9.80</languageToolchainVersion>

@@ -385,17 +385,18 @@ void box_setup() {
     uint16_t box_id;
     uint8_t i, keypad_result;
     uint8_t keypad_result_prev = 0xFF;
+    uint8_t count_i;
 
     box_id = ee_read_box_id();
 
-    
+
 
 
     if ((box_id == 0) || (box_id == 0xFFFF)) {
 
         POWER_OUT_ON();
 
-        
+
         LCDWriteStringXY(0, 0, "Box_ID:")
 
         for (i = 0; i < 5; i++) {
@@ -423,20 +424,51 @@ void box_setup() {
             keypad_result_prev = keypad_result;
 
         }
-
-        //delay_sec(1);
-
-        //box_id = 12345;
-
-        //idloc_write(0, (box_id & 0xFF));
-        //idloc_write(1, ((box_id >> 8) & 0xFF));
+        
         ee_write_box_id(box_id);
 
+
+        count_i = ee_read_unlock_count();
+
+    if ((count_i == 0) || (count_i == 0xFF)) {
+
+
+        LCDWriteStringXY(0, 0, "Unlock_count:")
+
+       for (i = 0; i < 2; i++) {
+            do {
+                //Read in unlock_count
+                keypad_result = read_keypad();
+                if (keypad_result == 0xFF)
+                    keypad_result_prev = 0xFF;
+                //Debouncing time
+                Wait(50);
+            } while ((keypad_result == 0xFF) || (keypad_result == keypad_result_prev));
+
+            buzz(100);
+            if (keypad_result == 0xa0) {
+                //tick Pressed
+            } else if (keypad_result == 0xa1) {
+                //cross pressed
+                count_i = 0;
+                i = 0;
+            } else {
+                count_i = (count_i * 10) + keypad_result;
+                LCDWriteIntXY(14, 0, count_i, (i + 1));
+            }
+
+            keypad_result_prev = keypad_result;
+
+        }
+
+        ee_write_unlock_count(count_i);
+        
         LCDClear();
         LCDWriteStringXY(0, 0, "Box_ID_Verify:");
         LCDWriteIntXY(0, 1, ee_read_box_id(), 5);
         delay_sec(3);
         LCDClear();
+    }
 
         setup_rtc();
 
@@ -446,11 +478,13 @@ void box_setup() {
 
     }
 
-    if (ee_read_unlock_count() == 0xFF)
-        ee_write_unlock_count(0x00);
+    // if (ee_read_unlock_count() == 0xFF)
+      //  ee_write_unlock_count(0x00);
 
     //Set the box ID
     set_box_id(box_id);
+
+
 
 }
 //------------------------------------------------------------------------------
